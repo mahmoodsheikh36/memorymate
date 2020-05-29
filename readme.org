@@ -1,10 +1,12 @@
 * description
   a program for writing diaries written in Python and uses GTK+
 
+  image of the memory editor
   #+CAPTION: image of memory editor
   #+NAME:   fig.editor
   [[editor.png]]
 
+  image of home
   #+CAPTION: image of home
   #+NAME:   fig.home
   [[home.png]]
