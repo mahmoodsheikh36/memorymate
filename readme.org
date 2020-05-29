@@ -4,8 +4,8 @@ a simple interactive program written in C to draw the Mandelbrot set https://en.
 
 #+CAPTION: image of memory editor
 #+NAME:   fig:SED-HR4049
-./images/editor.png
+[[ ./images/editor.png ]]
 
 #+CAPTION: image of home
 #+NAME:   fig:SED-HR4050
-./images/home.png
+[[ ./images/home.png ]]
