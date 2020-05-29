@@ -19,7 +19,7 @@ class MemoryWidget(Gtk.EventBox):
         self.time = builder.get_object('time')
         self.feeling = builder.get_object('feeling')
 
-        self.time.set_text(str(self.memory.time))
+        self.time.set_text(self.memory.time_str())
         self.content.set_text(self.memory.content)
         self.feeling.set_text(self.memory.feeling)
         self.title.set_text(self.memory.title)
@@ -39,7 +39,7 @@ class MemoryWidget(Gtk.EventBox):
         self.connect('button-press-event', self.on_click)
 
     def sync_with_memory(self):
-        self.time.set_text(str(self.memory.time))
+        self.time.set_text(self.memory.time_str())
         self.content.set_text(self.memory.content)
         self.feeling.set_text(self.memory.feeling)
         self.title.set_text(self.memory.title)

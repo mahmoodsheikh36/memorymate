@@ -1,5 +1,6 @@
 import sqlite3
 import time
+from datetime import datetime
 
 current_time = lambda: int(round(time.time() * 1000))
 
@@ -10,6 +11,9 @@ class Memory:
         self.time = time
         self.feeling = feeling
         self.id = memory_id
+
+    def time_str(self):
+        return str(datetime.fromtimestamp(self.time / 1000))
 
     def in_db(self):
         return self.id is not None
