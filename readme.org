@@ -2,9 +2,9 @@
   a program for writing diaries written in Python and uses GTK+
 
   #+CAPTION: image of memory editor
-  #+NAME:   fig:SED-HR4049
-  [[ ./images/editor.png ]]
+  #+NAME:   fig.editor
+  [[ file:images/editor.png ]]
 
   #+CAPTION: image of home
-  #+NAME:   fig:SED-HR4050
-  [[ ./images/home.png ]]
+  #+NAME:   fig.home
+  [[ file:images/home.png ]]
