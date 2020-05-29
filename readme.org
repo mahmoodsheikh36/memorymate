@@ -3,8 +3,8 @@
 
   #+CAPTION: image of memory editor
   #+NAME:   fig.editor
-  [[ editor.png ]]
+  [[editor.png]]
 
   #+CAPTION: image of home
   #+NAME:   fig.home
-  [[ home.png ]]
+  [[home.png]]
