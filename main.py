@@ -2,13 +2,7 @@
 import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
-
-class Memory:
-    def __init__(self, title, content, feeling, time):
-        self.title = title
-        self.content = content
-        self.time = time
-        self.feeling = feeling
+from db import Memory, DBProvider, current_time
 
 class MemoryWidget(Gtk.EventBox):
     def __init__(self, window, memory):
@@ -25,21 +19,32 @@ class MemoryWidget(Gtk.EventBox):
         self.time = builder.get_object('time')
         self.feeling = builder.get_object('feeling')
 
-        self.time.set_text(self.memory.time)
+        self.time.set_text(str(self.memory.time))
         self.content.set_text(self.memory.content)
         self.feeling.set_text(self.memory.feeling)
         self.title.set_text(self.memory.title)
 
         self.right_click_menu = Gtk.Menu()
-        delete_item = Gtk.MenuItem(label='delete')
+        delete_item = Gtk.ImageMenuItem(label=Gtk.STOCK_DELETE)
+        edit_item = Gtk.ImageMenuItem(label=Gtk.STOCK_EDIT)
+        delete_item.set_use_stock(True)
+        edit_item.set_use_stock(True)
         self.right_click_menu.append(delete_item)
+        self.right_click_menu.append(edit_item)
         delete_item.connect('button-press-event', self.delete)
-        delete_item.show()
+        edit_item.connect('button-press-event', self.edit)
+        self.right_click_menu.show_all()
 
         self.show()
         self.connect('button-press-event', self.on_click)
 
-    def edit(self):
+    def sync_with_memory(self):
+        self.time.set_text(str(self.memory.time))
+        self.content.set_text(self.memory.content)
+        self.feeling.set_text(self.memory.feeling)
+        self.title.set_text(self.memory.title)
+
+    def edit(self, widget, event):
         self.window.editor.set_memory(self.memory)
         self.window.switch_to_editor()
 
@@ -59,15 +64,32 @@ class MemoryEditor(Gtk.EventBox):
         builder.add_from_file('ui_data/editor.glade')
         self.add(builder.get_object('editor'))
 
+        self.memory = None
+
         self.title = builder.get_object('title')
         self.content = builder.get_object('content')
         self.feeling = builder.get_object('feeling')
         self.cancel = builder.get_object('cancel')
         self.save = builder.get_object('save')
 
+        self.save.connect('clicked', lambda _ : self.save_memory())
         self.cancel.connect("clicked", lambda _ : self.window.switch_to_home())
 
         self.show_all()
+
+    def save_memory(self):
+        self.memory.content = self.content.get_buffer().get_text(
+            self.content.get_buffer().get_start_iter(),
+            self.content.get_buffer().get_end_iter(),
+            True)
+        self.memory.title = self.title.get_text()
+        self.memory.feeling = self.feeling.get_text()
+        if self.memory.in_db():
+            self.window.db_provider.update_memory(self.memory)
+            self.window.update_memory(self.memory)
+        else:
+            self.window.db_provider.add_memory(self.memory)
+            self.window.add_memory(self.memory)
 
     def set_memory(self, memory):
         self.memory = memory
@@ -76,8 +98,9 @@ class MemoryEditor(Gtk.EventBox):
         self.feeling.set_text(memory.feeling)
 
 class Window(Gtk.Window):
-    def __init__(self):
+    def __init__(self, db_provider):
         Gtk.Window.__init__(self)
+        self.db_provider = db_provider
         self.set_title('memorymate')
         self.connect("destroy", Gtk.main_quit)
 
@@ -92,20 +115,13 @@ class Window(Gtk.Window):
         self.add(self.home_widget)
 
         self.memories_container = builder.get_object('memories')
-        memory1 = Memory('some title for this memory',
-                         'hey',
-                         'was feeling happy',
-                         '2 mins ago')
-        memory2 = Memory('sunny day test 1', 'hi hi hi hi hi some memory',
-                         'was feeling happy', '18 mins ago')
-        memory3 = Memory('sunny day test 2', 'whatever',
-                         'was feeling sad', '17 years ago')
-        self.add_memory(memory1)
-        self.add_memory(memory2)
-        self.add_memory(memory3)
-        self.editor.set_memory(memory1)
 
-        self.new_memory_button.connect('clicked', lambda _ : self.switch_to_editor())
+        mems = self.db_provider.get_memories()
+        for memory in mems:
+            self.add_memory(memory)
+
+        self.new_memory_button.connect('clicked', lambda _ :
+                                       self.switch_to_editor_with_new_memory())
 
         self.show_all()
 
@@ -115,11 +131,22 @@ class Window(Gtk.Window):
     def add_memory(self, memory):
         self.memories_container.add(MemoryWidget(self, memory))
 
+    def update_memory(self, memory):
+        for parent_widget in self.memories_container.get_children():
+            memory_widget = parent_widget.get_child()
+            if memory_widget.memory == memory:
+                memory_widget.sync_with_memory()
+
     def remove_memory(self, memory):
+        self.db_provider.delete_memory(memory)
         for parent_widget in self.memories_container.get_children():
             memory_widget = parent_widget.get_child()
             if memory_widget.memory == memory:
                 self.memories_container.remove(parent_widget)
+
+    def switch_to_editor_with_new_memory(self):
+        self.editor.set_memory(Memory('', '', '', current_time()))
+        self.switch_to_editor()
 
     def switch_to_editor(self):
         self.remove(self.home_widget)
@@ -130,5 +157,6 @@ class Window(Gtk.Window):
         self.add(self.home_widget)
 
 if __name__ == '__main__':
-    Window()
+    db_provider = DBProvider('memories.db')
+    Window(db_provider)
     Gtk.main()
