@@ -1,3 +1,6 @@
+* demo
+  https://www.youtube.com/watch?v=XUcAll7VcsY
+
 * description
   a program for writing diaries written in Python and uses GTK+
 
